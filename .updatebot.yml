@@ -1,5 +1,6 @@
 github:
   organisations:
-  - name: ryandawsonuk
+  - name: igdianov
     repositories:
     - name: downstream
+      branch: develop
