@@ -1,5 +1,6 @@
 local:
   name: igdianov/upstream
+  branch: develop
 github:
   organisations:
   - name: igdianov
