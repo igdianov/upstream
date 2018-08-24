@@ -3,7 +3,7 @@ pipeline {
       label "jenkins-maven"
     }
     environment {
-      ORG               = 'ryandawsonuk'
+      ORG               = 'igdianov'
       APP_NAME          = 'upstream'
       CHARTMUSEUM_CREDS = credentials('jenkins-x-chartmuseum')
     }
@@ -62,15 +62,26 @@ pipeline {
           container('maven') {
             sh 'mvn clean deploy'
 
-            sh 'export VERSION=`cat VERSION`'// && skaffold build -f skaffold.yaml'
+            // sh 'export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml'
 
-            //sh "echo doing updatebot push"
-            //sh "updatebot push"
+            // sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
+          }
+        }
+      }
+      stage('Push Version') {
+        when {
+          branch 'master'
+        }
+        steps {
+          container('maven') {
+            sh "echo doing updatebot push"
+            sh "updatebot push --ref \$(cat VERSION)"
 
-            sh "echo doing updatebot push-version"
-            sh "updatebot push-version --kind maven org.example:upstream \$(cat VERSION)"
+            //sh "echo doing updatebot push-version"
+            //sh "updatebot push-version --kind maven org.example:upstream \$(cat VERSION)"
 
-        //    sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
+            sh "echo doing updatebot update-loop"
+            sh "updatebot update-loop
           }
         }
       }
@@ -94,7 +105,7 @@ pipeline {
     //  }
     }
     post {
-        always {
+        success {
             cleanWs()
         }
         failure {
