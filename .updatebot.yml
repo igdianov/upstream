@@ -1,5 +1,5 @@
-local:
-  name: igdianov/upstream
+#local:
+#  name: igdianov/upstream
 github:
   organisations:
   - name: igdianov
