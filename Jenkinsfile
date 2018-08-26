@@ -82,6 +82,11 @@ pipeline {
 
             sh "echo doing updatebot update-loop"
             sh "updatebot update-loop"
+
+            // Let's publish release notes in Github
+            // Issue: jx cannot detect commit list between prev and last tags for some reason...
+            sh "jx step changelog --version v\$(cat VERSION) --generate-yaml=false"
+              
           }
         }
       }
@@ -90,10 +95,7 @@ pipeline {
           branch 'master'
         }
         steps {
-            container('maven') {
-                // Let's publish release notes in Github
-                sh "jx step changelog --version v\$(cat VERSION) --generate-yaml=false"
-            }
+            sh "echo Promote to Environments"
     //      dir ('./charts/upstream') {
     //        container('maven') {
     //          sh 'jx step changelog --version v\$(cat ../../VERSION)'
