@@ -85,11 +85,15 @@ pipeline {
           }
         }
       }
-//      stage('Promote to Environments') {
-  //      when {
-    //      branch 'master'
-    //    }
-    //    steps {
+      stage('Promote to Environments') {
+        when {
+          branch 'master'
+        }
+        steps {
+            container('maven') {
+                // Let's publish release notes in Github
+                sh "jx step changelog --version v\$(cat VERSION) --generate-yaml=false"
+            }
     //      dir ('./charts/upstream') {
     //        container('maven') {
     //          sh 'jx step changelog --version v\$(cat ../../VERSION)'
@@ -101,8 +105,8 @@ pipeline {
             //  sh 'jx promote -b --all-auto --timeout 1h --version \$(cat ../../VERSION)'
     //        }
     //      }
-    //    }
-    //  }
+        }
+      }
     }
     post {
         success {
