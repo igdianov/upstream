@@ -3,5 +3,5 @@ github:
   - name: igdianov
     repositories:
     - name: downstream
-      # should be using default branch
-      # branch: develop
+      # should be using custom branch
+      branch: release
