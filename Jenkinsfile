@@ -95,6 +95,7 @@ pipeline {
           branch 'master'
         }
         steps {
+            sh "echo Promote to Environments"
     //      dir ('./charts/upstream') {
     //        container('maven') {
     //          sh 'jx step changelog --version v\$(cat ../../VERSION)'
