@@ -13,3 +13,5 @@ github:
       # use custom branch 
       branch: develop
 ```
+
+If custom branch is not configured, the updatebot will try to use default branch for Github repositories. Otherwise, it will default to master branch. 
