@@ -22,3 +22,5 @@ There is also example how to publish release notes in Github using commits betwe
 because jx step changelog cannot auto detect all commits changelog between prev and last tags on the release branch. See Jenkinsfile for details...
 
 Another comment.
+
+Another feature.
