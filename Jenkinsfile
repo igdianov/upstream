@@ -54,11 +54,7 @@ pipeline {
             sh "mvn clean verify"            
 
             // Let's make tag in Git            
-            sh "git add --all"
-            sh "git commit -m 'Release '\$(cat VERSION) --allow-empty"
-            sh "git tag -fa v\$(cat VERSION) -m 'Release version '\$(cat VERSION)"
-            sh "git push origin v\$(cat VERSION)"
-            
+            sh "make tag"
           }
           // dir ('./charts/upstream') {
           //   container('maven') {
@@ -82,20 +78,7 @@ pipeline {
           container('maven') {
 
             // Let's publish release notes in Github using commits between previous and last tags
-            // Issue: jx step changelog cannot auto detect all commits between prev and last tags on the release branch...
-            sh '''export VERSION=`cat VERSION`
-              # Alternatively grab latest and previous annotated tags with ^Release
-              export REV=`git rev-list --tags --max-count=1 --grep '^Release'`
-              export PREVIOUS_REV=`git rev-list --tags --max-count=1 --skip=1 --grep '^Release'`
-
-              echo Creating Github Changelog Release: $VERSION of `git show-ref --hash -- v$VERSION`
-
-              echo Found commits between `git describe $PREVIOUS_REV` and `git describe $REV`:
-
-              git rev-list $PREVIOUS_REV..$REV --first-parent --pretty
-
-              jx step changelog --version v$VERSION --generate-yaml=false --rev=$REV --previous-rev=$PREVIOUS_REV            
-            '''
+            sh "make changelog"
 
             sh "echo doing updatebot push"
             sh "updatebot push --ref \$(cat VERSION)"
