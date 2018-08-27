@@ -19,11 +19,8 @@ pipeline {
         }
         steps {
           container('maven') {
-            sh "mvn versions:set -DnewVersion=$PREVIEW_VERSION"
-            sh "mvn install"
-            sh 'export VERSION=$PREVIEW_VERSION' //&& skaffold build -f skaffold.yaml'
-
-
+            sh "make preview"
+            
            // sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:$PREVIEW_VERSION"
           }
 
@@ -42,16 +39,13 @@ pipeline {
         steps {
           container('maven') {
             // ensure we're not on a detached head
-            sh "git checkout master" 
-            sh "git config --global credential.helper store"
+            sh "make checkout"
 
-            sh "jx step git credentials"
             // so we can retrieve the version in later steps
-            sh "echo \$(jx-release-version) > VERSION"
-            sh "mvn versions:set -DnewVersion=\$(cat VERSION)"
+            sh "make version"
             
             // Let's test first
-            sh "mvn clean verify"            
+            sh "make verify"            
 
             // Let's make tag in Git            
             sh "make tag"
@@ -62,10 +56,7 @@ pipeline {
           //   }
           // }
           container('maven') {
-            sh 'mvn clean deploy'
-
-            // sh 'export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml'
-
+            sh "make deploy"
             // sh "jx step post build --image $DOCKER_REGISTRY/$ORG/$APP_NAME:\$(cat VERSION)"
           }
         }
@@ -80,15 +71,13 @@ pipeline {
             // Let's publish release notes in Github using commits between previous and last tags
             sh "make changelog"
 
-            sh "echo doing updatebot push"
-            sh "updatebot push --ref \$(cat VERSION)"
+            // Let's push changes and open PRs to downstream repositories
+            sh "make push"
 
-            //sh "echo doing updatebot push-version"
-            //sh "updatebot push-version --kind maven org.example:upstream \$(cat VERSION)"
+            //sh "make push-version"
 
             // Let's wait for downstream CI pipeline status to automatically merge and close the PR
-            sh "echo doing updatebot update-loop"
-            sh "updatebot update-loop --poll-time-ms 60000"
+            sh "make update-loop"
           }
         }
      }
