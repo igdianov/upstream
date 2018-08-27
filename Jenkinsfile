@@ -49,10 +49,16 @@ pipeline {
             // so we can retrieve the version in later steps
             sh "echo \$(jx-release-version) > VERSION"
             sh "mvn versions:set -DnewVersion=\$(cat VERSION)"
+            
+            // Let's test first
+            sh "mvn clean verify"            
+
+            // Let's make tag in Git            
             sh "git add --all"
             sh "git commit -m 'Release '\$(cat VERSION) --allow-empty"
             sh "git tag -fa v\$(cat VERSION) -m 'Release version '\$(cat VERSION)"
             sh "git push origin v\$(cat VERSION)"
+            
           }
           // dir ('./charts/upstream') {
           //   container('maven') {
@@ -68,47 +74,62 @@ pipeline {
           }
         }
       }
-      stage('Push Version') {
+      stage('Promote Version') {
         when {
           branch 'master'
         }
         steps {
           container('maven') {
+
+            // Let's publish release notes in Github using commits between previous and last tags
+            // Issue: jx step changelog cannot auto detect all commits changelog between prev and last tags on the release branch...
+            sh """
+                export VERSION=`cat VERSION`
+                export REV=`git rev-list --tags --max-count=1 --grep '^Release'`        
+                export PREVIOUS_REV=`git rev-list --tags --max-count=1 --skip=1 --grep '^Release'`
+
+                echo Creating Github Changelog Release: $VERSION of `git show-ref --hash -- v$VERSION`
+                echo Found commits between `git describe $PREVIOUS_REV` and `git describe $REV`:
+                git rev-list $PREVIOUS_REV..$REV --first-parent --pretty
+
+                jx step changelog --version v$VERSION --generate-yaml=false --rev=$REV --previous-rev=$PREVIOUS_REV
+            """
+
             sh "echo doing updatebot push"
             sh "updatebot push --ref \$(cat VERSION)"
 
             //sh "echo doing updatebot push-version"
             //sh "updatebot push-version --kind maven org.example:upstream \$(cat VERSION)"
 
+            // Let's wait for downstream CI pipeline status to automatically merge and close the PR
             sh "echo doing updatebot update-loop"
-            sh "updatebot update-loop"
-
-            // Let's publish release notes in Github
-            // Issue: jx cannot detect commit list between prev and last tags for some reason...
-            sh "jx step changelog --version v\$(cat VERSION) --generate-yaml=false"
-              
+            sh "updatebot update-loop --poll-time-ms 60000"
           }
         }
-      }
+     }
+
+/*
       stage('Promote to Environments') {
         when {
           branch 'master'
         }
         steps {
-            sh "echo Promote to Environments"
-    //      dir ('./charts/upstream') {
-    //        container('maven') {
-    //          sh 'jx step changelog --version v\$(cat ../../VERSION)'
-
-              // release the helm chart
-             // sh 'jx step helm release'
-
-              // promote through all 'Auto' promotion Environments
-            //  sh 'jx promote -b --all-auto --timeout 1h --version \$(cat ../../VERSION)'
-    //        }
-    //      }
+          
+          dir ('./charts/upstream') {
+              container('maven') {
+                // sh 'jx step changelog --version v\$(cat ../../VERSION)'
+    
+                // release the helm chart
+                sh 'jx step helm release'
+    
+                // promote through all 'Auto' promotion Environments
+                sh 'jx promote -b --all-auto --timeout 1h --version \$(cat ../../VERSION)'
+              }
+            }
         }
       }
+*/      
+
     }
     post {
         success {
@@ -117,8 +138,7 @@ pipeline {
         failure {
             input """Pipeline failed. 
 We will keep the build pod around to help you diagnose any failures. 
-
 Select Proceed or Abort to terminate the build pod"""
         }
     }
-  }
+}
