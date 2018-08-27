@@ -84,9 +84,8 @@ pipeline {
             // Let's publish release notes in Github using commits between previous and last tags
             // Issue: jx step changelog cannot auto detect all commits between prev and last tags on the release branch...
             sh '''export VERSION=`cat VERSION`
-              # Alternatively grab latest annotated tag with
-              # export REV=`git rev-list --tags --max-count=1 --grep '^Release'`
-              export REV=`git show-ref --hash -- v$VERSION`
+              # Alternatively grab latest and previous annotated tags with ^Release
+              export REV=`git rev-list --tags --max-count=1 --grep '^Release'`
               export PREVIOUS_REV=`git rev-list --tags --max-count=1 --skip=1 --grep '^Release'`
 
               echo Creating Github Changelog Release: $VERSION of `git show-ref --hash -- v$VERSION`
