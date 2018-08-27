@@ -82,7 +82,7 @@ pipeline {
           container('maven') {
 
             // Let's publish release notes in Github using commits between previous and last tags
-            // Issue: jx step changelog cannot auto detect all commits changelog between prev and last tags on the release branch...
+            // Issue: jx step changelog cannot auto detect all commits between prev and last tags on the release branch...
             sh """
                 export VERSION=`cat VERSION`
                 export REV=`git rev-list --tags --max-count=1 --grep '^Release'`        
