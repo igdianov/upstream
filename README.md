@@ -24,3 +24,5 @@ because jx step changelog cannot auto detect all commits changelog between prev 
 Another comment.
 
 Another feature.
+
+Another documentation.
