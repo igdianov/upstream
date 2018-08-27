@@ -20,3 +20,5 @@ This version of updatebot also tries to resolve local repository name from Git c
 
 There is also example how to publish release notes in Github using commits between previous and last tags
 because jx step changelog cannot auto detect all commits changelog between prev and last tags on the release branch. See Jenkinsfile for details...
+
+Another comment.
